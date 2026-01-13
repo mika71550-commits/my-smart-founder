@@ -2,7 +2,7 @@ import streamlit as st
 import google.generativeai as genai
 
 # =========================================================
-# 1. PAGE CONFIGURATION
+# 1. إعدادات الصفحة
 # =========================================================
 st.set_page_config(
     page_title="Smart Co-Founder",
@@ -11,95 +11,82 @@ st.set_page_config(
 )
 
 # =========================================================
-# 2. CSS STYLING (ICON FIX + FULL SCREEN)
+# 2. CSS (التصميم النهائي بدون أخطاء)
 # =========================================================
 st.markdown("""
 <style>
-    /* --- FONTS --- */
+    /* استيراد الخطوط */
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Cairo:wght@400;700;900&display=swap');
-    /* استيراد خط الأيقونات الأصلي عشان نضمن وجوده */
-    @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
-
-    /* 1. تطبيق الخط الجديد على النصوص فقط (تعديل مهم جداً) */
-    html, body, p, div, h1, h2, h3, h4, h5, h6, input, textarea, label {
-        font-family: 'Outfit', 'Cairo', sans-serif;
-        color: white;
+    
+    /* === 1. إصلاح مشكلة الأيقونات (هام جداً) === */
+    /* نطبق الخط الجديد على النصوص الصريحة فقط */
+    h1, h2, h3, h4, h5, h6, p, div, span, a, button, input, textarea, label {
+        font-family: 'Outfit', 'Cairo', sans-serif !important;
+        color: white !important;
     }
-
-    /* 2. إجبار الأيقونات على استخدام خطها الأصلي */
-    .material-icons, 
+    
+    /* استثناء الأيقونات وإجبارها على استخدام خط الرموز */
+    [data-testid="stSidebarCollapsedControl"] *, 
     [data-testid="stSidebarCollapsedControl"] span,
-    [data-testid="stSidebarCollapsedControl"] i,
-    button i,
-    button span {
-        font-family: 'Material Icons' !important;
-        font-weight: normal;
-        font-style: normal;
+    .material-icons,
+    i {
+        font-family: 'Material Icons' !important; /* ده اللي بيرجع السهم لشكله الطبيعي */
+        font-weight: normal !important;
+        font-style: normal !important;
+        letter-spacing: normal !important;
+        text-transform: none !important;
     }
 
-    /* --- BACKGROUND (Full Screen) --- */
+    /* === 2. الخلفية الكاملة === */
     .stApp {
         background: linear-gradient(135deg, #9b1c31 0%, #d92d4b 50%, #f09819 100%);
         background-attachment: fixed;
         background-size: cover;
     }
 
-    /* --- 🛑 REMOVING BLACK BOX (TRANSPARENCY) 🛑 --- */
+    /* === 3. إخفاء وإلغاء المربع الأسود السفلي === */
     [data-testid="stBottom"] {
         background-color: transparent !important;
-        background: transparent !important;
         border: none !important;
         box-shadow: none !important;
-        padding-bottom: 20px;
     }
     [data-testid="stBottom"] > div {
         background-color: transparent !important;
     }
-    
-    /* إخفاء الفوتر */
     footer {visibility: hidden;}
     [data-testid="stFooter"] {display: none;}
-    
-    /* --- HEADER TRANSPARENCY --- */
-    [data-testid="stHeader"] {
-        background-color: transparent !important;
-    }
+    [data-testid="stHeader"] {background-color: transparent !important;}
     [data-testid="stDecoration"] {display: none;}
 
-    /* --- INPUT BOX (Floating Glass) --- */
-    .stChatInputContainer {
-        background-color: transparent !important;
-    }
+    /* === 4. تصميم مربع الكتابة العائم === */
     .stChatInputContainer > div {
         background-color: rgba(0, 0, 0, 0.4) !important;
         backdrop-filter: blur(10px) !important;
         border: 1px solid rgba(255, 255, 255, 0.3) !important;
         border-radius: 30px !important;
-        color: white !important;
         box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     }
     .stChatInputContainer textarea { 
-        color: white !important;
         font-weight: 700 !important;
-        font-family: 'Outfit', 'Cairo', sans-serif !important; /* التأكد من الخط جوه البوكس */
     }
+    /* تأثير التركيز */
     .stChatInputContainer > div:focus-within {
         background-color: rgba(0, 0, 0, 0.6) !important;
         border-color: #FFD700 !important;
     }
 
-    /* --- SIDEBAR --- */
+    /* === 5. القائمة الجانبية === */
     section[data-testid="stSidebar"] {
         background-color: rgba(0, 0, 0, 0.5) !important;
         backdrop-filter: blur(20px);
         border-right: 1px solid rgba(255,255,255,0.1);
     }
-    /* تصحيح لون سهم القائمة */
+    /* تلوين سهم القائمة بالأبيض */
     [data-testid="stSidebarCollapsedControl"] {
         color: white !important;
     }
 
-    /* --- BUTTONS --- */
+    /* === 6. الأزرار الذهبية === */
     div.stButton > button {
         background: linear-gradient(92deg, #FFD700 0%, #FF8C00 100%); 
         color: #8B0000 !important; 
@@ -121,7 +108,7 @@ st.markdown("""
         box-shadow: 0 0 25px rgba(255, 215, 0, 0.6);
     }
 
-    /* --- STEPS --- */
+    /* === 7. خطوات التقدم === */
     .step-box {
         padding: 20px;
         margin-bottom: 12px;
@@ -135,18 +122,17 @@ st.markdown("""
     }
     .step-title { font-size: 15px; font-weight: 900; margin: 0; color: #fff !important; }
     .step-active .step-title { color: #FFD700 !important; }
-    
-    /* --- CHAT BUBBLES --- */
+
+    /* === 8. الرسائل === */
     .stChatMessage { background: transparent; border: none; padding: 0; margin-bottom: 10px; }
     [data-testid="chatAvatarIcon-assistant"], [data-testid="chatAvatarIcon-user"] { display: none !important; }
     .chat-label { font-size: 13px; font-weight: 900; margin-bottom: 8px; letter-spacing: 1px; text-transform: uppercase; }
     .chat-bubble { padding: 20px; border-radius: 16px; font-size: 18px; font-weight: 600; line-height: 1.6; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-
 </style>
 """, unsafe_allow_html=True)
 
 # =========================================================
-# 3. LOGIC (WITH NEW API KEY)
+# 3. المنطق والموديل (تم التحديث)
 # =========================================================
 if 'page' not in st.session_state:
     st.session_state.page = 'landing'
@@ -160,14 +146,15 @@ API_KEY = "AIzaSyD753gzu6nM_k8jXNkUz0bOQApxIojeZOo"
 
 try:
     genai.configure(api_key=API_KEY)
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    # 👇👇 استخدمنا gemini-pro المضمون بدلاً من flash 👇👇
+    model = genai.GenerativeModel('gemini-pro')
 except:
-    pass
+    st.error("Error setting up API Key.")
 
 def go_to_app():
     st.session_state.page = 'app'
     if not st.session_state.messages:
-        st.session_state.messages = [{"role": "assistant", "content": "System Ready. Describe your startup idea."}]
+        st.session_state.messages = [{"role": "assistant", "content": "Ready to launch. Tell me your idea!"}]
 
 def reset_app():
     st.session_state.page = 'landing'
@@ -175,7 +162,7 @@ def reset_app():
     st.session_state.messages = []
 
 # =========================================================
-# 4. VIEW: LANDING
+# 4. واجهة الصفحة الرئيسية
 # =========================================================
 if st.session_state.page == 'landing':
     c1, c2 = st.columns([1,1])
@@ -207,7 +194,7 @@ if st.session_state.page == 'landing':
         st.image("https://cdni.iconscout.com/illustration/premium/thumb/web-development-2974925-2477356.png", width=650)
 
 # =========================================================
-# 5. VIEW: APP
+# 5. واجهة التطبيق
 # =========================================================
 elif st.session_state.page == 'app':
     
@@ -273,7 +260,7 @@ elif st.session_state.page == 'app':
             st.rerun()
 
         if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
-            with st.spinner("Analyzing..."):
+            with st.spinner("Thinking..."):
                 try:
                     full_context = "\n".join([f"{m['role']}: {m['content']}" for m in st.session_state.messages])
                     response = model.generate_content(f"Act as a professional startup consultant. Be concise and bold. Context: {full_context}")
@@ -289,7 +276,7 @@ elif st.session_state.page == 'app':
         st.markdown("""
         <div style="background:rgba(0,0,0,0.4); padding:40px; border-radius:15px; border:1px solid rgba(255,255,255,0.2);">
             <h3 style="color:#FFD700 !important;">EXECUTIVE SUMMARY</h3>
-            <p style="font-size:20px;"><strong>MISSION:</strong> Dominate the local market with premium quality and AI-driven operations.</p>
+            <p style="font-size:20px;"><strong>MISSION:</strong> Dominate the local market with premium quality.</p>
             <br>
             <h3 style="color:#FFD700 !important;">NEXT STEPS</h3>
             <ul>
@@ -309,7 +296,7 @@ elif st.session_state.page == 'app':
         t1, t2 = st.tabs(["SUPPLIERS", "MARKETING"])
         with t1:
             st.write("")
-            st.text_input("SEARCH DATABASE", placeholder="e.g. Packaging, Developers...")
+            st.text_input("SEARCH DATABASE", placeholder="e.g. Packaging...")
             st.button("FIND SUPPLIERS")
         with t2:
             st.write("")
