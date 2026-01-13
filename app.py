@@ -225,4 +225,43 @@ elif st.session_state.page == 'app':
         with chat_cont:
             for msg in st.session_state.messages:
                 is_ai = msg["role"] == "assistant"
-                label = "
+                label = "AI CONSULTANT" if is_ai else "YOU"
+                color = "#FFD700" if is_ai else "#FFF"
+                bg = "rgba(255,255,255,0.1)" if is_ai else "rgba(0,0,0,0.3)"
+                
+                st.markdown(f"""
+                <div style="margin-bottom: 20px;">
+                    <div class="chat-label" style="color:{color} !important;">{label}</div>
+                    <div class="chat-bubble" style="background:{bg}; border: 1px solid rgba(255,255,255,0.1);">{msg['content']}</div>
+                </div>
+                """, unsafe_allow_html=True)
+        
+        st.write("<br><br>", unsafe_allow_html=True)
+
+        if prompt := st.chat_input("TYPE HERE..."):
+            st.session_state.messages.append({"role": "user", "content": prompt})
+            st.rerun()
+
+        if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
+            with st.spinner("ANALYZING..."):
+                full_ctx = "\n".join([f"{m['role']}: {m['content']}" for m in st.session_state.messages])
+                reply = get_ai_response(f"Act as a professional startup consultant. No emojis. Short and bold answers. Context: {full_ctx}")
+                st.session_state.messages.append({"role": "assistant", "content": reply})
+                st.rerun()
+
+    elif st.session_state.phase == 2:
+        st.markdown("## STRATEGIC BLUEPRINT")
+        st.success("PLAN GENERATED SUCCESSFULLY")
+        st.markdown("""<div style="background:rgba(0,0,0,0.4); padding:30px; border-radius:15px;"><h3>EXECUTIVE SUMMARY</h3><p>YOUR AI STRATEGY IS READY.</p></div>""", unsafe_allow_html=True)
+        if st.button("GO TO EXECUTION"):
+            st.session_state.phase = 3
+            st.rerun()
+
+    elif st.session_state.phase == 3:
+        st.markdown("## EXECUTION TOOLS")
+        t1, t2 = st.tabs(["SUPPLIERS", "MARKETING"])
+        with t1:
+            st.text_input("SEARCH DATABASE")
+            st.button("FIND")
+        with t2:
+            st.button("CREATE CAMPAIGN")
