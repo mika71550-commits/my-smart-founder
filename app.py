@@ -1,5 +1,6 @@
 import streamlit as st
 import google.generativeai as genai
+import time
 
 # =========================================================
 # 1. إعدادات الصفحة
@@ -11,44 +12,46 @@ st.set_page_config(
 )
 
 # =========================================================
-# 2. CSS (التصميم النهائي بدون أخطاء)
+# 2. CSS STYLING (التصميم النهائي بدون أخطاء)
 # =========================================================
+# تحميل مكتبة الأيقونات بشكل صريح
+st.markdown('<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">', unsafe_allow_html=True)
+
 st.markdown("""
 <style>
     /* استيراد الخطوط */
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Cairo:wght@400;700;900&display=swap');
     
-    /* === 1. إصلاح مشكلة الأيقونات (هام جداً) === */
-    /* نطبق الخط الجديد على النصوص الصريحة فقط */
-    h1, h2, h3, h4, h5, h6, p, div, span, a, button, input, textarea, label {
+    /* 1. تطبيق الخط الجديد على النصوص الصريحة فقط */
+    div:not(.material-icons), p, h1, h2, h3, h4, h5, h6, span:not(.material-icons), a, button, input, textarea, label {
         font-family: 'Outfit', 'Cairo', sans-serif !important;
         color: white !important;
     }
     
-    /* استثناء الأيقونات وإجبارها على استخدام خط الرموز */
-    [data-testid="stSidebarCollapsedControl"] *, 
+    /* 2. حماية الأيقونات (هام جداً للسهم) */
+    .material-icons, 
     [data-testid="stSidebarCollapsedControl"] span,
-    .material-icons,
-    i {
-        font-family: 'Material Icons' !important; /* ده اللي بيرجع السهم لشكله الطبيعي */
-        font-weight: normal !important;
-        font-style: normal !important;
-        letter-spacing: normal !important;
-        text-transform: none !important;
+    [data-testid="stSidebarNav"] span,
+    button i {
+        font-family: 'Material Icons' !important;
+        font-weight: normal;
+        font-style: normal;
     }
 
-    /* === 2. الخلفية الكاملة === */
+    /* 3. الخلفية الكاملة */
     .stApp {
         background: linear-gradient(135deg, #9b1c31 0%, #d92d4b 50%, #f09819 100%);
         background-attachment: fixed;
         background-size: cover;
     }
 
-    /* === 3. إخفاء وإلغاء المربع الأسود السفلي === */
+    /* 4. إزالة المربع الأسود السفلي (شفافية كاملة) */
     [data-testid="stBottom"] {
         background-color: transparent !important;
+        background: transparent !important;
         border: none !important;
         box-shadow: none !important;
+        padding-bottom: 20px;
     }
     [data-testid="stBottom"] > div {
         background-color: transparent !important;
@@ -58,7 +61,7 @@ st.markdown("""
     [data-testid="stHeader"] {background-color: transparent !important;}
     [data-testid="stDecoration"] {display: none;}
 
-    /* === 4. تصميم مربع الكتابة العائم === */
+    /* 5. مربع الكتابة العائم */
     .stChatInputContainer > div {
         background-color: rgba(0, 0, 0, 0.4) !important;
         backdrop-filter: blur(10px) !important;
@@ -67,7 +70,9 @@ st.markdown("""
         box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     }
     .stChatInputContainer textarea { 
+        color: white !important;
         font-weight: 700 !important;
+        caret-color: #FFD700;
     }
     /* تأثير التركيز */
     .stChatInputContainer > div:focus-within {
@@ -75,18 +80,18 @@ st.markdown("""
         border-color: #FFD700 !important;
     }
 
-    /* === 5. القائمة الجانبية === */
+    /* 6. القائمة الجانبية */
     section[data-testid="stSidebar"] {
         background-color: rgba(0, 0, 0, 0.5) !important;
         backdrop-filter: blur(20px);
         border-right: 1px solid rgba(255,255,255,0.1);
     }
-    /* تلوين سهم القائمة بالأبيض */
+    /* لون أيقونة السهم أبيض */
     [data-testid="stSidebarCollapsedControl"] {
         color: white !important;
     }
 
-    /* === 6. الأزرار الذهبية === */
+    /* 7. الأزرار */
     div.stButton > button {
         background: linear-gradient(92deg, #FFD700 0%, #FF8C00 100%); 
         color: #8B0000 !important; 
@@ -104,11 +109,10 @@ st.markdown("""
     }
     div.stButton > button:hover {
         transform: translateY(-3px);
-        color: black !important;
         box-shadow: 0 0 25px rgba(255, 215, 0, 0.6);
     }
 
-    /* === 7. خطوات التقدم === */
+    /* 8. الخطوات */
     .step-box {
         padding: 20px;
         margin-bottom: 12px;
@@ -123,33 +127,48 @@ st.markdown("""
     .step-title { font-size: 15px; font-weight: 900; margin: 0; color: #fff !important; }
     .step-active .step-title { color: #FFD700 !important; }
 
-    /* === 8. الرسائل === */
+    /* 9. الشات */
     .stChatMessage { background: transparent; border: none; padding: 0; margin-bottom: 10px; }
     [data-testid="chatAvatarIcon-assistant"], [data-testid="chatAvatarIcon-user"] { display: none !important; }
     .chat-label { font-size: 13px; font-weight: 900; margin-bottom: 8px; letter-spacing: 1px; text-transform: uppercase; }
     .chat-bubble { padding: 20px; border-radius: 16px; font-size: 18px; font-weight: 600; line-height: 1.6; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+
 </style>
 """, unsafe_allow_html=True)
 
 # =========================================================
-# 3. المنطق والموديل (تم التحديث)
+# 3. إعدادات الذكاء الاصطناعي (Gemini 2.5 Flash)
 # =========================================================
+API_KEY = "AIzaSyD753gzu6nM_k8jXNkUz0bOQApxIojeZOo" # مفتاحك
+
+# دالة ذكية للتعامل مع ضغط الموديل (Rate Limiting)
+def get_ai_response(prompt_text):
+    try:
+        genai.configure(api_key=API_KEY)
+        # 👇👇 استخدمنا 2.5 flash بناءً على طلبك 👇👇
+        model = genai.GenerativeModel('gemini-2.5-flash')
+        response = model.generate_content(prompt_text)
+        return response.text
+    except Exception as e:
+        error_msg = str(e)
+        # لو الإيرور (429) يعني زحمة، نستنى ونحاول تاني
+        if "429" in error_msg:
+            time.sleep(2) # استراحة ثانتين
+            try:
+                model = genai.GenerativeModel('gemini-2.5-flash')
+                response = model.generate_content(prompt_text)
+                return response.text
+            except:
+                return "⚠️ Network busy (Rate Limit). Please wait 10s and try again."
+        else:
+            return f"⚠️ Error: {error_msg}"
+
 if 'page' not in st.session_state:
     st.session_state.page = 'landing'
 if 'phase' not in st.session_state:
     st.session_state.phase = 1
 if 'messages' not in st.session_state:
     st.session_state.messages = []
-
-# 👇👇 تم وضع مفتاحك الجديد هنا 👇👇
-API_KEY = "AIzaSyD753gzu6nM_k8jXNkUz0bOQApxIojeZOo"
-
-try:
-    genai.configure(api_key=API_KEY)
-    # 👇👇 استخدمنا gemini-pro المضمون بدلاً من flash 👇👇
-    model = genai.GenerativeModel('gemini-pro')
-except:
-    st.error("Error setting up API Key.")
 
 def go_to_app():
     st.session_state.page = 'app'
@@ -170,7 +189,6 @@ if st.session_state.page == 'landing':
     
     st.write("")
     st.write("")
-    st.write("")
     
     col_text, col_img = st.columns([5, 4])
     with col_text:
@@ -182,7 +200,6 @@ if st.session_state.page == 'landing':
         Build your startup with the power of AI. From idea validation to 
         marketing strategies, get everything you need in one unified dashboard.
         """)
-        
         st.write("")
         c_btn, _ = st.columns([2, 1])
         with c_btn:
@@ -202,7 +219,6 @@ elif st.session_state.page == 'app':
         st.markdown("### CONTROL CENTER")
         st.caption("ID: SESSION-001")
         st.write("")
-        st.write("")
         
         steps = [
             (1, "BRAINSTORMING", "Idea Validation"),
@@ -220,7 +236,6 @@ elif st.session_state.page == 'app':
             """, unsafe_allow_html=True)
         
         st.write("---")
-        
         if st.session_state.phase == 1:
             st.info("💡 Tip: Chat to refine idea, then click Generate.")
             if st.button("GENERATE PLAN"):
@@ -261,15 +276,16 @@ elif st.session_state.page == 'app':
 
         if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
             with st.spinner("Thinking..."):
-                try:
-                    full_context = "\n".join([f"{m['role']}: {m['content']}" for m in st.session_state.messages])
-                    response = model.generate_content(f"Act as a professional startup consultant. Be concise and bold. Context: {full_context}")
-                    st.session_state.messages.append({"role": "assistant", "content": response.text})
-                    st.rerun()
-                except Exception as e:
-                    st.error(f"Error: {e}")
+                full_context = "\n".join([f"{m['role']}: {m['content']}" for m in st.session_state.messages])
+                prompt_to_ai = f"Act as a professional startup consultant. Be concise and bold. Context: {full_context}"
+                
+                # استدعاء الدالة الذكية
+                ai_reply = get_ai_response(prompt_to_ai)
+                
+                st.session_state.messages.append({"role": "assistant", "content": ai_reply})
+                st.rerun()
 
-    # Blueprint Phase
+    # باقي المراحل
     elif st.session_state.phase == 2:
         st.markdown("## STRATEGIC BLUEPRINT")
         st.success("PLAN GENERATED SUCCESSFULLY")
@@ -282,7 +298,6 @@ elif st.session_state.page == 'app':
             <ul>
                 <li>STEP 01: Secure Initial Funding</li>
                 <li>STEP 02: MVP Development Sprint</li>
-                <li>STEP 03: Soft Launch Campaign</li>
             </ul>
         </div>
         """, unsafe_allow_html=True)
@@ -290,7 +305,6 @@ elif st.session_state.page == 'app':
             st.session_state.phase = 3
             st.rerun()
 
-    # Execution Phase
     elif st.session_state.phase == 3:
         st.markdown("## EXECUTION TOOLS")
         t1, t2 = st.tabs(["SUPPLIERS", "MARKETING"])
