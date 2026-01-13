@@ -12,56 +12,55 @@ st.set_page_config(
 )
 
 # =========================================================
-# 2. CSS STYLING (التصميم النهائي بدون أخطاء)
+# 2. CSS STYLING (الحل النهائي للأيقونات والمربع الأسود)
 # =========================================================
-# تحميل مكتبة الأيقونات بشكل صريح
-st.markdown('<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">', unsafe_allow_html=True)
-
 st.markdown("""
 <style>
     /* استيراد الخطوط */
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Cairo:wght@400;700;900&display=swap');
-    
-    /* 1. تطبيق الخط الجديد على النصوص الصريحة فقط */
-    div:not(.material-icons), p, h1, h2, h3, h4, h5, h6, span:not(.material-icons), a, button, input, textarea, label {
-        font-family: 'Outfit', 'Cairo', sans-serif !important;
-        color: white !important;
+    @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+
+    /* === 1. تطبيق الخط الجديد (بدون استخدام النجمة * عشان الأيقونات ماتضربش) === */
+    html, body, .stApp {
+        font-family: 'Outfit', 'Cairo', sans-serif;
+        color: white;
+    }
+    h1, h2, h3, h4, h5, h6, p, li, span, div {
+        font-family: 'Outfit', 'Cairo', sans-serif;
     }
     
-    /* 2. حماية الأيقونات (هام جداً للسهم) */
+    /* حماية صريحة للأيقونات */
     .material-icons, 
-    [data-testid="stSidebarCollapsedControl"] span,
-    [data-testid="stSidebarNav"] span,
-    button i {
-        font-family: 'Material Icons' !important;
-        font-weight: normal;
-        font-style: normal;
+    [data-testid="stSidebarCollapsedControl"] *,
+    [data-testid="stSidebarNav"] * {
+        font-family: 'Material Icons' !important; 
     }
 
-    /* 3. الخلفية الكاملة */
+    /* === 2. الخلفية الكاملة === */
     .stApp {
         background: linear-gradient(135deg, #9b1c31 0%, #d92d4b 50%, #f09819 100%);
         background-attachment: fixed;
         background-size: cover;
     }
 
-    /* 4. إزالة المربع الأسود السفلي (شفافية كاملة) */
+    /* === 3. إخفاء المربع الأسود السفلي (شفاف) === */
     [data-testid="stBottom"] {
         background-color: transparent !important;
         background: transparent !important;
         border: none !important;
         box-shadow: none !important;
-        padding-bottom: 20px;
     }
     [data-testid="stBottom"] > div {
         background-color: transparent !important;
     }
+    
+    /* إخفاء الهيدر والفوتر */
+    header {visibility: hidden;}
+    [data-testid="stHeader"] {background: transparent;}
     footer {visibility: hidden;}
-    [data-testid="stFooter"] {display: none;}
-    [data-testid="stHeader"] {background-color: transparent !important;}
     [data-testid="stDecoration"] {display: none;}
 
-    /* 5. مربع الكتابة العائم */
+    /* === 4. مربع الكتابة العائم === */
     .stChatInputContainer > div {
         background-color: rgba(0, 0, 0, 0.4) !important;
         backdrop-filter: blur(10px) !important;
@@ -72,26 +71,26 @@ st.markdown("""
     .stChatInputContainer textarea { 
         color: white !important;
         font-weight: 700 !important;
-        caret-color: #FFD700;
+        background: transparent !important;
     }
-    /* تأثير التركيز */
     .stChatInputContainer > div:focus-within {
         background-color: rgba(0, 0, 0, 0.6) !important;
         border-color: #FFD700 !important;
     }
 
-    /* 6. القائمة الجانبية */
+    /* === 5. القائمة الجانبية === */
     section[data-testid="stSidebar"] {
         background-color: rgba(0, 0, 0, 0.5) !important;
         backdrop-filter: blur(20px);
         border-right: 1px solid rgba(255,255,255,0.1);
     }
-    /* لون أيقونة السهم أبيض */
+    /* لون أيقونة السهم */
     [data-testid="stSidebarCollapsedControl"] {
         color: white !important;
+        background: transparent !important;
     }
 
-    /* 7. الأزرار */
+    /* === 6. الأزرار الذهبية === */
     div.stButton > button {
         background: linear-gradient(92deg, #FFD700 0%, #FF8C00 100%); 
         color: #8B0000 !important; 
@@ -105,14 +104,14 @@ st.markdown("""
         box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         width: 100%;
         margin-top: 15px;
-        font-family: 'Outfit', 'Cairo', sans-serif !important;
     }
     div.stButton > button:hover {
         transform: translateY(-3px);
         box-shadow: 0 0 25px rgba(255, 215, 0, 0.6);
+        color: black !important;
     }
 
-    /* 8. الخطوات */
+    /* === 7. خطوات التقدم (Sidebar) === */
     .step-box {
         padding: 20px;
         margin-bottom: 12px;
@@ -127,7 +126,7 @@ st.markdown("""
     .step-title { font-size: 15px; font-weight: 900; margin: 0; color: #fff !important; }
     .step-active .step-title { color: #FFD700 !important; }
 
-    /* 9. الشات */
+    /* === 8. الشات === */
     .stChatMessage { background: transparent; border: none; padding: 0; margin-bottom: 10px; }
     [data-testid="chatAvatarIcon-assistant"], [data-testid="chatAvatarIcon-user"] { display: none !important; }
     .chat-label { font-size: 13px; font-weight: 900; margin-bottom: 8px; letter-spacing: 1px; text-transform: uppercase; }
@@ -137,31 +136,27 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================
-# 3. إعدادات الذكاء الاصطناعي (Gemini 2.5 Flash)
+# 3. إعدادات الذكاء (Gemini 2.5 Flash)
 # =========================================================
 API_KEY = "AIzaSyD753gzu6nM_k8jXNkUz0bOQApxIojeZOo" # مفتاحك
 
-# دالة ذكية للتعامل مع ضغط الموديل (Rate Limiting)
+# دالة ذكية لتفادي التوقف (Rate Limit Retry)
 def get_ai_response(prompt_text):
-    try:
-        genai.configure(api_key=API_KEY)
-        # 👇👇 استخدمنا 2.5 flash بناءً على طلبك 👇👇
-        model = genai.GenerativeModel('gemini-2.5-flash')
-        response = model.generate_content(prompt_text)
-        return response.text
-    except Exception as e:
-        error_msg = str(e)
-        # لو الإيرور (429) يعني زحمة، نستنى ونحاول تاني
-        if "429" in error_msg:
-            time.sleep(2) # استراحة ثانتين
-            try:
-                model = genai.GenerativeModel('gemini-2.5-flash')
-                response = model.generate_content(prompt_text)
-                return response.text
-            except:
-                return "⚠️ Network busy (Rate Limit). Please wait 10s and try again."
-        else:
-            return f"⚠️ Error: {error_msg}"
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            genai.configure(api_key=API_KEY)
+            # 👇👇 الموديل اللي أنت عايزه 👇👇
+            model = genai.GenerativeModel('gemini-2.5-flash')
+            response = model.generate_content(prompt_text)
+            return response.text
+        except Exception as e:
+            if "429" in str(e): # لو السيرفر مشغول
+                time.sleep(2) # استنى ثانيتين وحاول تاني
+                continue
+            else:
+                return f"⚠️ Error: {str(e)}"
+    return "⚠️ Server is busy. Please try again in a few seconds."
 
 if 'page' not in st.session_state:
     st.session_state.page = 'landing'
@@ -181,7 +176,7 @@ def reset_app():
     st.session_state.messages = []
 
 # =========================================================
-# 4. واجهة الصفحة الرئيسية
+# 4. الصفحة الرئيسية (Landing)
 # =========================================================
 if st.session_state.page == 'landing':
     c1, c2 = st.columns([1,1])
@@ -211,7 +206,7 @@ if st.session_state.page == 'landing':
         st.image("https://cdni.iconscout.com/illustration/premium/thumb/web-development-2974925-2477356.png", width=650)
 
 # =========================================================
-# 5. واجهة التطبيق
+# 5. واجهة التطبيق (App)
 # =========================================================
 elif st.session_state.page == 'app':
     
@@ -279,13 +274,11 @@ elif st.session_state.page == 'app':
                 full_context = "\n".join([f"{m['role']}: {m['content']}" for m in st.session_state.messages])
                 prompt_to_ai = f"Act as a professional startup consultant. Be concise and bold. Context: {full_context}"
                 
-                # استدعاء الدالة الذكية
                 ai_reply = get_ai_response(prompt_to_ai)
-                
                 st.session_state.messages.append({"role": "assistant", "content": ai_reply})
                 st.rerun()
 
-    # باقي المراحل
+    # Blueprint Phase
     elif st.session_state.phase == 2:
         st.markdown("## STRATEGIC BLUEPRINT")
         st.success("PLAN GENERATED SUCCESSFULLY")
