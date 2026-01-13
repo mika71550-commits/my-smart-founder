@@ -12,120 +12,120 @@ st.set_page_config(
 )
 
 # =========================================================
-# 2. CSS STYLING (الحل النووي لإخفاء الكلمة) ☢️
+# 2. CSS STYLING (المصالحة: الزرار + المربع الشفاف + الخط العريض)
 # =========================================================
+# تحميل خطوط النصوص + خط الأيقونات
+st.markdown('<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">', unsafe_allow_html=True)
+
 st.markdown("""
 <style>
-    /* استيراد خط النصوص */
-    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Cairo:wght@400;700;900&display=swap');
+    /* استيراد الخط العريض */
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;900&family=Cairo:wght@500;700;900&display=swap');
     
-    /* تطبيق الخط على النصوص العادية */
-    html, body, [class*="css"] {
+    /* 1. تطبيق الخط العريض على النصوص فقط (تجنب الأيقونات) */
+    html, body, p, h1, h2, h3, h4, h5, h6, span, div, button, input, textarea, label {
         font-family: 'Outfit', 'Cairo', sans-serif;
     }
-
-    /* === 1. القضاء على كلمة keyboard_double_arrow_right === */
-    /* استهداف الزرار اللي بيطلع الكلمة */
-    [data-testid="stSidebarCollapsedControl"] {
-        color: transparent !important; /* خلي الكلام شفاف (يختفي) */
-    }
     
-    /* رسم أيقونة بديلة فوق الكلمة المختفية */
-    [data-testid="stSidebarCollapsedControl"]::after {
-        content: "☰"; /* رمز القائمة العادي (موجود في كل الاجهزة) */
-        color: #FFD700; /* لون ذهبي */
-        font-size: 30px;
-        font-weight: bold;
-        position: absolute;
-        top: 0;
-        left: 0;
-        background: rgba(0,0,0,0.3); /* خلفية بسيطة */
-        padding: 5px 10px;
-        border-radius: 8px;
+    /* فرض السماكة (Bold) على النصوص */
+    p, li, span, div { font-weight: 500; } 
+    h1, h2, h3, h4, h5, h6, .stButton button { font-weight: 900 !important; }
+
+    /* 2. إصلاح الزرار (إرجاع أيقونة السهم) */
+    /* بنقول للمتصفح: أي حاجة جوه زرار القائمة استخدم خط الأيقونات */
+    [data-testid="stSidebarCollapsedControl"] i,
+    [data-testid="stSidebarCollapsedControl"] span {
+        font-family: 'Material Icons' !important;
+        font-weight: normal !important;
+        font-style: normal;
     }
 
-    /* === 2. الخلفية الكاملة === */
+    /* 3. الخلفية الكاملة */
     .stApp {
         background: linear-gradient(135deg, #9b1c31 0%, #d92d4b 50%, #f09819 100%);
         background-attachment: fixed;
         background-size: cover;
     }
 
-    /* === 3. تنظيف الواجهة === */
-    /* إخفاء الهيدر والفوتر */
-    header {background: transparent !important;}
-    [data-testid="stHeader"] {background: transparent !important; z-index: 999;}
-    [data-testid="stDecoration"] {display: none;}
-    footer {display: none !important;}
-    
-    /* إخفاء الشريط السفلي (المربع الأسود) */
+    /* 4. إزالة المربع الأسود السفلي (شفافية تامة) */
     [data-testid="stBottom"] {
+        background-color: transparent !important;
         background: transparent !important;
         border: none !important;
         box-shadow: none !important;
     }
+    [data-testid="stBottom"] > div {
+        background-color: transparent !important;
+    }
 
-    /* === 4. تصميم مربع الكتابة === */
+    /* 5. مربع الكتابة العائم (Floating Glass) */
     .stChatInputContainer > div {
         background-color: rgba(0, 0, 0, 0.5) !important;
         backdrop-filter: blur(10px);
         border: 1px solid rgba(255, 255, 255, 0.3) !important;
         border-radius: 30px !important;
-        color: white !important;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
     }
-    .stChatInputContainer textarea {
+    .stChatInputContainer textarea { 
         color: white !important;
-        font-weight: 700 !important;
-        caret-color: #FFD700;
+        font-weight: 700 !important; /* خط عريض للكتابة */
     }
 
-    /* === 5. القائمة الجانبية === */
+    /* 6. تنظيف الواجهة */
+    header {background: transparent !important;}
+    [data-testid="stHeader"] {background: transparent !important; pointer-events: none;} /* يسمح بالضغط على الزرار */
+    [data-testid="stSidebarCollapsedControl"] {pointer-events: auto;} /* تفعيل زرار القائمة */
+    footer {display: none !important;}
+    [data-testid="stDecoration"] {display: none;}
+
+    /* 7. القائمة الجانبية */
     section[data-testid="stSidebar"] {
         background-color: rgba(0, 0, 0, 0.6) !important;
         backdrop-filter: blur(20px);
         border-right: 1px solid rgba(255,255,255,0.1);
-        padding-top: 20px;
     }
     
-    /* تلوين نصوص القائمة */
-    section[data-testid="stSidebar"] p, section[data-testid="stSidebar"] span {
-        color: white !important;
-    }
-
-    /* === 6. الأزرار === */
+    /* 8. الأزرار الذهبية */
     div.stButton > button {
         background: linear-gradient(92deg, #FFD700 0%, #FF8C00 100%); 
         color: #8B0000 !important; 
         border: none;
         border-radius: 12px;
-        padding: 15px 30px;
+        padding: 16px 40px;
         font-size: 18px;
-        font-weight: 900 !important;
+        font-weight: 900 !important; /* Bold جداً */
+        letter-spacing: 1px;
         text-transform: uppercase;
         width: 100%;
-        margin-top: 10px;
+        margin-top: 15px;
     }
     div.stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        transform: translateY(-3px);
+        box-shadow: 0 0 25px rgba(255, 215, 0, 0.6);
+        color: black !important;
     }
 
-    /* === 7. الفقاعات والخطوات === */
+    /* 9. خطوات التقدم (Bold & Clean) */
     .step-box {
-        padding: 15px; margin-bottom: 10px; border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 12px;
+        border-radius: 10px;
         background: rgba(255, 255, 255, 0.05);
-        border-left: 4px solid rgba(255, 255, 255, 0.2);
+        border-left: 5px solid rgba(255, 255, 255, 0.2);
     }
     .step-active {
         background: linear-gradient(90deg, rgba(255, 215, 0, 0.15) 0%, transparent 100%);
-        border-left: 4px solid #FFD700;
+        border-left: 5px solid #FFD700;
     }
-    .step-title { font-weight: 900; margin: 0; color: white !important; }
+    .step-title { font-size: 16px; font-weight: 900 !important; margin: 0; color: #fff !important; }
     .step-active .step-title { color: #FFD700 !important; }
+    .step-desc { font-weight: 700 !important; opacity: 0.8; }
 
-    /* الشات */
+    /* 10. الشات */
     .stChatMessage { background: transparent; }
     [data-testid="chatAvatarIcon-assistant"], [data-testid="chatAvatarIcon-user"] { display: none !important; }
+    .chat-label { font-size: 14px; font-weight: 900; margin-bottom: 8px; letter-spacing: 1px; text-transform: uppercase; }
+    .chat-bubble { padding: 20px; border-radius: 16px; font-size: 18px; font-weight: 600; line-height: 1.6; }
 
 </style>
 """, unsafe_allow_html=True)
@@ -150,16 +150,14 @@ def get_ai_response(prompt_text):
             return f"⚠️ Error: {str(e)}"
     return "⚠️ Server busy. Please try again."
 
-# State Management
 if 'page' not in st.session_state: st.session_state.page = 'landing'
 if 'phase' not in st.session_state: st.session_state.phase = 1
 if 'messages' not in st.session_state: st.session_state.messages = []
 
-# Navigation Functions
 def go_to_app():
     st.session_state.page = 'app'
     if not st.session_state.messages:
-        st.session_state.messages = [{"role": "assistant", "content": "Ready. Tell me your idea!"}]
+        st.session_state.messages = [{"role": "assistant", "content": "SYSTEM READY. DESCRIBE YOUR STARTUP IDEA."}]
 
 def reset_app():
     st.session_state.page = 'landing'
@@ -170,8 +168,8 @@ def reset_app():
 # 4. الصفحة الرئيسية
 # =========================================================
 if st.session_state.page == 'landing':
-    col1, col2 = st.columns([1,1])
-    with col1: st.markdown("<h3>SMART FOUNDER</h3>", unsafe_allow_html=True)
+    c1, c2 = st.columns([1,1])
+    with c1: st.markdown("<h3>SMART FOUNDER</h3>", unsafe_allow_html=True)
     
     st.write("")
     st.write("")
@@ -179,10 +177,10 @@ if st.session_state.page == 'landing':
     c_txt, c_img = st.columns([5, 4])
     with c_txt:
         st.write("")
-        st.markdown('<p style="color:#FFD700; letter-spacing:3px; font-weight:700;">AI-POWERED PARTNER</p>', unsafe_allow_html=True)
+        st.markdown('<p style="color:#FFD700 !important; letter-spacing:3px; font-weight:900;">AI-POWERED PARTNER</p>', unsafe_allow_html=True)
         st.markdown('<div style="font-size: 80px; font-weight: 900; line-height: 1;">SMART<br>CO-FOUNDER</div>', unsafe_allow_html=True)
         st.write("")
-        st.markdown("Build your startup with the power of AI.")
+        st.markdown("<p style='font-weight:700;'>BUILD YOUR STARTUP WITH THE POWER OF AI. VALIDATE IDEAS, PLAN STRATEGIES, AND EXECUTE.</p>", unsafe_allow_html=True)
         st.write("")
         
         btn_col, _ = st.columns([2, 1])
@@ -199,12 +197,11 @@ if st.session_state.page == 'landing':
 # =========================================================
 elif st.session_state.page == 'app':
     
-    # Sidebar
     with st.sidebar:
         st.markdown("### CONTROL CENTER")
         st.write("")
         
-        steps = [(1, "BRAINSTORMING", "Idea Validation"), (2, "BLUEPRINT", "Strategic Plan"), (3, "EXECUTION", "Growth Tools")]
+        steps = [(1, "BRAINSTORMING", "IDEA VALIDATION"), (2, "BLUEPRINT", "STRATEGIC PLAN"), (3, "EXECUTION", "GROWTH TOOLS")]
         for num, title, desc in steps:
             active = "step-active" if st.session_state.phase == num else ""
             st.markdown(f"""<div class="step-box {active}"><p class="step-title">0{num}. {title}</p><p class="step-desc">{desc}</p></div>""", unsafe_allow_html=True)
@@ -224,50 +221,8 @@ elif st.session_state.page == 'app':
     if st.session_state.phase == 1:
         st.markdown("## BRAINSTORMING SESSION")
         
-        # Chat Messages
         chat_cont = st.container()
         with chat_cont:
             for msg in st.session_state.messages:
                 is_ai = msg["role"] == "assistant"
-                label = "AI CONSULTANT" if is_ai else "YOU"
-                color = "#FFD700" if is_ai else "#FFF"
-                bg = "rgba(255,255,255,0.15)" if is_ai else "rgba(0,0,0,0.3)"
-                
-                st.markdown(f"""
-                <div style="margin-bottom: 20px;">
-                    <div style="color:{color}; font-weight:bold; font-size:12px; margin-bottom:5px;">{label}</div>
-                    <div style="background:{bg}; padding:15px; border-radius:15px;">{msg['content']}</div>
-                </div>
-                """, unsafe_allow_html=True)
-        
-        st.write("<br><br>", unsafe_allow_html=True)
-
-        # Input
-        if prompt := st.chat_input("Type here..."):
-            st.session_state.messages.append({"role": "user", "content": prompt})
-            st.rerun()
-
-        # Response
-        if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
-            with st.spinner("Analyzing..."):
-                full_ctx = "\n".join([f"{m['role']}: {m['content']}" for m in st.session_state.messages])
-                reply = get_ai_response(f"Act as a pro consultant. Concise. Context: {full_ctx}")
-                st.session_state.messages.append({"role": "assistant", "content": reply})
-                st.rerun()
-
-    elif st.session_state.phase == 2:
-        st.markdown("## STRATEGIC BLUEPRINT")
-        st.success("PLAN GENERATED")
-        st.markdown("""<div style="background:rgba(0,0,0,0.4); padding:30px; border-radius:15px;"><h3>EXECUTIVE SUMMARY</h3><p>Your AI Plan is ready.</p></div>""", unsafe_allow_html=True)
-        if st.button("GO TO EXECUTION"):
-            st.session_state.phase = 3
-            st.rerun()
-
-    elif st.session_state.phase == 3:
-        st.markdown("## EXECUTION TOOLS")
-        t1, t2 = st.tabs(["SUPPLIERS", "MARKETING"])
-        with t1:
-            st.text_input("SEARCH")
-            st.button("FIND")
-        with t2:
-            st.button("CREATE CAMPAIGN")
+                label = "
