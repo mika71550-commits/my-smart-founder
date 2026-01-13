@@ -12,55 +12,64 @@ st.set_page_config(
 )
 
 # =========================================================
-# 2. CSS STYLING (الحل النهائي للأيقونات والمربع الأسود)
+# 2. تحميل مكتبة الأيقونات (الحل الجذري) 🛠️
+# =========================================================
+st.markdown('<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">', unsafe_allow_html=True)
+
+# =========================================================
+# 3. CSS Styling (بدون أخطاء)
 # =========================================================
 st.markdown("""
 <style>
     /* استيراد الخطوط */
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Cairo:wght@400;700;900&display=swap');
-    @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
-
-    /* === 1. تطبيق الخط الجديد (بدون استخدام النجمة * عشان الأيقونات ماتضربش) === */
-    html, body, .stApp {
-        font-family: 'Outfit', 'Cairo', sans-serif;
-        color: white;
-    }
-    h1, h2, h3, h4, h5, h6, p, li, span, div {
-        font-family: 'Outfit', 'Cairo', sans-serif;
+    
+    /* 1. تطبيق الخط الجديد على النصوص الصريحة فقط */
+    /* شلنا النجمة * عشان منبوظش الدنيا */
+    .stApp, div:not(.material-icons), p, h1, h2, h3, h4, h5, h6, span:not(.material-icons), button, input, textarea, label {
+        font-family: 'Outfit', 'Cairo', sans-serif !important;
+        color: white !important;
     }
     
-    /* حماية صريحة للأيقونات */
-    .material-icons, 
-    [data-testid="stSidebarCollapsedControl"] *,
-    [data-testid="stSidebarNav"] * {
-        font-family: 'Material Icons' !important; 
+    /* 2. حماية الأيقونات وإجبارها على الظهور */
+    /* ده الكود اللي بيرجع السهم */
+    [data-testid="stSidebarCollapsedControl"] i,
+    [data-testid="stSidebarCollapsedControl"] span,
+    .material-icons {
+        font-family: 'Material Icons' !important;
+        font-weight: normal;
+        font-style: normal;
+        font-size: 24px; /* حجم مناسب */
+        display: inline-block;
+        color: white !important;
     }
 
-    /* === 2. الخلفية الكاملة === */
+    /* 3. الخلفية الكاملة */
     .stApp {
         background: linear-gradient(135deg, #9b1c31 0%, #d92d4b 50%, #f09819 100%);
         background-attachment: fixed;
         background-size: cover;
     }
 
-    /* === 3. إخفاء المربع الأسود السفلي (شفاف) === */
+    /* 4. إزالة المربع الأسود السفلي (شفاف) */
     [data-testid="stBottom"] {
         background-color: transparent !important;
         background: transparent !important;
         border: none !important;
         box-shadow: none !important;
+        padding-bottom: 20px;
     }
     [data-testid="stBottom"] > div {
         background-color: transparent !important;
     }
     
-    /* إخفاء الهيدر والفوتر */
-    header {visibility: hidden;}
-    [data-testid="stHeader"] {background: transparent;}
+    /* 5. إخفاء العناصر الزائدة */
     footer {visibility: hidden;}
+    [data-testid="stFooter"] {display: none;}
+    [data-testid="stHeader"] {background-color: transparent !important;}
     [data-testid="stDecoration"] {display: none;}
 
-    /* === 4. مربع الكتابة العائم === */
+    /* 6. مربع الكتابة العائم */
     .stChatInputContainer > div {
         background-color: rgba(0, 0, 0, 0.4) !important;
         backdrop-filter: blur(10px) !important;
@@ -71,26 +80,20 @@ st.markdown("""
     .stChatInputContainer textarea { 
         color: white !important;
         font-weight: 700 !important;
-        background: transparent !important;
     }
     .stChatInputContainer > div:focus-within {
         background-color: rgba(0, 0, 0, 0.6) !important;
         border-color: #FFD700 !important;
     }
 
-    /* === 5. القائمة الجانبية === */
+    /* 7. القائمة الجانبية */
     section[data-testid="stSidebar"] {
         background-color: rgba(0, 0, 0, 0.5) !important;
         backdrop-filter: blur(20px);
         border-right: 1px solid rgba(255,255,255,0.1);
     }
-    /* لون أيقونة السهم */
-    [data-testid="stSidebarCollapsedControl"] {
-        color: white !important;
-        background: transparent !important;
-    }
 
-    /* === 6. الأزرار الذهبية === */
+    /* 8. الأزرار */
     div.stButton > button {
         background: linear-gradient(92deg, #FFD700 0%, #FF8C00 100%); 
         color: #8B0000 !important; 
@@ -104,6 +107,7 @@ st.markdown("""
         box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         width: 100%;
         margin-top: 15px;
+        font-family: 'Outfit', 'Cairo', sans-serif !important;
     }
     div.stButton > button:hover {
         transform: translateY(-3px);
@@ -111,7 +115,7 @@ st.markdown("""
         color: black !important;
     }
 
-    /* === 7. خطوات التقدم (Sidebar) === */
+    /* 9. الخطوات */
     .step-box {
         padding: 20px;
         margin-bottom: 12px;
@@ -126,7 +130,7 @@ st.markdown("""
     .step-title { font-size: 15px; font-weight: 900; margin: 0; color: #fff !important; }
     .step-active .step-title { color: #FFD700 !important; }
 
-    /* === 8. الشات === */
+    /* 10. الشات */
     .stChatMessage { background: transparent; border: none; padding: 0; margin-bottom: 10px; }
     [data-testid="chatAvatarIcon-assistant"], [data-testid="chatAvatarIcon-user"] { display: none !important; }
     .chat-label { font-size: 13px; font-weight: 900; margin-bottom: 8px; letter-spacing: 1px; text-transform: uppercase; }
@@ -136,27 +140,27 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================================================
-# 3. إعدادات الذكاء (Gemini 2.5 Flash)
+# 4. إعدادات الذكاء الاصطناعي (Gemini 2.5 Flash)
 # =========================================================
-API_KEY = "AIzaSyD753gzu6nM_k8jXNkUz0bOQApxIojeZOo" # مفتاحك
+API_KEY = "AIzaSyC72rNM7BbVuN8mbU9aWet4n2AWrJHEbog" # مفتاحك
 
-# دالة ذكية لتفادي التوقف (Rate Limit Retry)
+# دالة التعامل مع الضغط (Smart Retry)
 def get_ai_response(prompt_text):
     max_retries = 3
     for attempt in range(max_retries):
         try:
             genai.configure(api_key=API_KEY)
-            # 👇👇 الموديل اللي أنت عايزه 👇👇
+            # 👇👇 الموديل المطلوب 👇👇
             model = genai.GenerativeModel('gemini-2.5-flash')
             response = model.generate_content(prompt_text)
             return response.text
         except Exception as e:
-            if "429" in str(e): # لو السيرفر مشغول
-                time.sleep(2) # استنى ثانيتين وحاول تاني
-                continue
+            if "429" in str(e): # لو زحمة
+                time.sleep(2) # استنى 2 ثانية
+                continue # حاول تاني
             else:
                 return f"⚠️ Error: {str(e)}"
-    return "⚠️ Server is busy. Please try again in a few seconds."
+    return "⚠️ Server busy. Try again shortly."
 
 if 'page' not in st.session_state:
     st.session_state.page = 'landing'
@@ -176,7 +180,7 @@ def reset_app():
     st.session_state.messages = []
 
 # =========================================================
-# 4. الصفحة الرئيسية (Landing)
+# 5. واجهة الصفحة الرئيسية (Landing)
 # =========================================================
 if st.session_state.page == 'landing':
     c1, c2 = st.columns([1,1])
@@ -206,7 +210,7 @@ if st.session_state.page == 'landing':
         st.image("https://cdni.iconscout.com/illustration/premium/thumb/web-development-2974925-2477356.png", width=650)
 
 # =========================================================
-# 5. واجهة التطبيق (App)
+# 6. واجهة التطبيق (App)
 # =========================================================
 elif st.session_state.page == 'app':
     
