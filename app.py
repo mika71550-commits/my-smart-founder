@@ -1,204 +1,316 @@
-iimport streamlit as st
+import streamlit as st
 import google.generativeai as genai
-import time
 
-# ---------------------------------------------------------
-# 1. إعدادات الصفحة
-# ---------------------------------------------------------
+# =========================================================
+# 1. PAGE CONFIGURATION
+# =========================================================
 st.set_page_config(
     page_title="Smart Co-Founder",
     layout="wide",
-    page_icon="🚀",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
 
-# ---------------------------------------------------------
-# 2. تحويل التصميم لكود (CSS Magic) 🎨
-# ---------------------------------------------------------
-# هنا بنرسم الخلفية المتدرجة (Gradient) وبنغير الخطوط
+# =========================================================
+# 2. CSS STYLING (ICON FIX + FULL SCREEN)
+# =========================================================
 st.markdown("""
 <style>
-    /* استيراد خط Montserrat عشان يبقى شبه الصورة */
-    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;700;900&family=Cairo:wght@400;700&display=swap');
+    /* --- FONTS --- */
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Cairo:wght@400;700;900&display=swap');
+    /* استيراد خط الأيقونات الأصلي عشان نضمن وجوده */
+    @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
 
-    /* 1. الخلفية المتدرجة (Red/Orange Gradient) */
+    /* 1. تطبيق الخط الجديد على النصوص فقط (تعديل مهم جداً) */
+    html, body, p, div, h1, h2, h3, h4, h5, h6, input, textarea, label {
+        font-family: 'Outfit', 'Cairo', sans-serif;
+        color: white;
+    }
+
+    /* 2. إجبار الأيقونات على استخدام خطها الأصلي */
+    .material-icons, 
+    [data-testid="stSidebarCollapsedControl"] span,
+    [data-testid="stSidebarCollapsedControl"] i,
+    button i,
+    button span {
+        font-family: 'Material Icons' !important;
+        font-weight: normal;
+        font-style: normal;
+    }
+
+    /* --- BACKGROUND (Full Screen) --- */
     .stApp {
-        background: #8E2DE2;  /* fallback for old browsers */
-        background: -webkit-linear-gradient(to right, #4A00E0, #8E2DE2);  /* Chrome 10-25, Safari 5.1-6 */
-        background: linear-gradient(135deg, #9b1c31 0%, #d92d4b 50%, #f09819 100%); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+        background: linear-gradient(135deg, #9b1c31 0%, #d92d4b 50%, #f09819 100%);
+        background-attachment: fixed;
+        background-size: cover;
     }
 
-    /* 2. النصوص بيضاء */
-    h1, h2, h3, h4, p, div, span {
-        color: white !important;
-        font-family: 'Montserrat', 'Cairo', sans-serif;
+    /* --- 🛑 REMOVING BLACK BOX (TRANSPARENCY) 🛑 --- */
+    [data-testid="stBottom"] {
+        background-color: transparent !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding-bottom: 20px;
     }
-
-    /* 3. إخفاء الهيدر الافتراضي بتاع Streamlit */
-    header {visibility: hidden;}
+    [data-testid="stBottom"] > div {
+        background-color: transparent !important;
+    }
     
-    /* 4. تنسيق الزرار (Call to Action) */
-    div.stButton > button {
-        background: linear-gradient(90deg, #F09819 0%, #EDDE5D 100%);
-        color: #9b1c31 !important; /* لون النص نبيتي */
-        border: none;
-        border-radius: 30px; /* حواف دائرية */
-        padding: 15px 40px;
-        font-size: 20px;
-        font-weight: 900;
+    /* إخفاء الفوتر */
+    footer {visibility: hidden;}
+    [data-testid="stFooter"] {display: none;}
+    
+    /* --- HEADER TRANSPARENCY --- */
+    [data-testid="stHeader"] {
+        background-color: transparent !important;
+    }
+    [data-testid="stDecoration"] {display: none;}
+
+    /* --- INPUT BOX (Floating Glass) --- */
+    .stChatInputContainer {
+        background-color: transparent !important;
+    }
+    .stChatInputContainer > div {
+        background-color: rgba(0, 0, 0, 0.4) !important;
+        backdrop-filter: blur(10px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        border-radius: 30px !important;
+        color: white !important;
         box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        transition: transform 0.2s;
+    }
+    .stChatInputContainer textarea { 
+        color: white !important;
+        font-weight: 700 !important;
+        font-family: 'Outfit', 'Cairo', sans-serif !important; /* التأكد من الخط جوه البوكس */
+    }
+    .stChatInputContainer > div:focus-within {
+        background-color: rgba(0, 0, 0, 0.6) !important;
+        border-color: #FFD700 !important;
+    }
+
+    /* --- SIDEBAR --- */
+    section[data-testid="stSidebar"] {
+        background-color: rgba(0, 0, 0, 0.5) !important;
+        backdrop-filter: blur(20px);
+        border-right: 1px solid rgba(255,255,255,0.1);
+    }
+    /* تصحيح لون سهم القائمة */
+    [data-testid="stSidebarCollapsedControl"] {
+        color: white !important;
+    }
+
+    /* --- BUTTONS --- */
+    div.stButton > button {
+        background: linear-gradient(92deg, #FFD700 0%, #FF8C00 100%); 
+        color: #8B0000 !important; 
+        border: none;
+        border-radius: 12px;
+        padding: 16px 40px;
+        font-size: 18px;
+        font-weight: 900 !important;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        width: 100%;
+        margin-top: 15px;
+        font-family: 'Outfit', 'Cairo', sans-serif !important;
     }
     div.stButton > button:hover {
-        transform: scale(1.05);
+        transform: translateY(-3px);
         color: black !important;
+        box-shadow: 0 0 25px rgba(255, 215, 0, 0.6);
     }
 
-    /* 5. الناف بار (Simulation) */
-    .navbar {
-        display: flex;
-        justify-content: flex-end;
-        gap: 30px;
+    /* --- STEPS --- */
+    .step-box {
         padding: 20px;
-        font-weight: bold;
-        font-size: 14px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
+        margin-bottom: 12px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.05);
+        border-left: 5px solid rgba(255, 255, 255, 0.2);
     }
+    .step-active {
+        background: linear-gradient(90deg, rgba(255, 215, 0, 0.15) 0%, transparent 100%);
+        border-left: 5px solid #FFD700;
+    }
+    .step-title { font-size: 15px; font-weight: 900; margin: 0; color: #fff !important; }
+    .step-active .step-title { color: #FFD700 !important; }
     
-    /* 6. النصوص الكبيرة */
-    .big-title {
-        font-size: 80px;
-        font-weight: 900;
-        line-height: 1.1;
-        margin-bottom: 10px;
-        text-transform: uppercase;
-    }
-    .sub-title {
-        font-size: 24px;
-        font-weight: 300;
-        letter-spacing: 2px;
-        margin-bottom: 30px;
-        opacity: 0.9;
-    }
-    .desc {
-        font-size: 16px;
-        line-height: 1.6;
-        opacity: 0.8;
-        max-width: 500px;
-        margin-bottom: 40px;
-    }
+    /* --- CHAT BUBBLES --- */
+    .stChatMessage { background: transparent; border: none; padding: 0; margin-bottom: 10px; }
+    [data-testid="chatAvatarIcon-assistant"], [data-testid="chatAvatarIcon-user"] { display: none !important; }
+    .chat-label { font-size: 13px; font-weight: 900; margin-bottom: 8px; letter-spacing: 1px; text-transform: uppercase; }
+    .chat-bubble { padding: 20px; border-radius: 16px; font-size: 18px; font-weight: 600; line-height: 1.6; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------------------------------------------------
-# 3. إدارة الحالة (عشان ننتقل من اللاندنج للأبليكشن)
-# ---------------------------------------------------------
+# =========================================================
+# 3. LOGIC (WITH NEW API KEY)
+# =========================================================
 if 'page' not in st.session_state:
-    st.session_state.page = 'landing' # landing OR app
+    st.session_state.page = 'landing'
+if 'phase' not in st.session_state:
+    st.session_state.phase = 1
+if 'messages' not in st.session_state:
+    st.session_state.messages = []
+
+# 👇👇 تم وضع مفتاحك الجديد هنا 👇👇
+API_KEY = "AIzaSyD753gzu6nM_k8jXNkUz0bOQApxIojeZOo"
+
+try:
+    genai.configure(api_key=API_KEY)
+    model = genai.GenerativeModel('gemini-1.5-flash')
+except:
+    pass
 
 def go_to_app():
     st.session_state.page = 'app'
+    if not st.session_state.messages:
+        st.session_state.messages = [{"role": "assistant", "content": "System Ready. Describe your startup idea."}]
 
-# ---------------------------------------------------------
-# 4. محتوى الصفحة (Landing Page View)
-# ---------------------------------------------------------
+def reset_app():
+    st.session_state.page = 'landing'
+    st.session_state.phase = 1
+    st.session_state.messages = []
+
+# =========================================================
+# 4. VIEW: LANDING
+# =========================================================
 if st.session_state.page == 'landing':
+    c1, c2 = st.columns([1,1])
+    with c1: st.markdown("<h3>SMART FOUNDER</h3>", unsafe_allow_html=True)
     
-    # 1. Navbar (HTML)
-    st.markdown("""
-    <div class="navbar">
-        <span>Home</span>
-        <span>About Us</span>
-        <span>Services</span>
-        <span>Contact</span>
-    </div>
-    """, unsafe_allow_html=True)
-
     st.write("")
     st.write("")
-
-    # 2. Main Hero Section (Layout 50/50)
-    col1, col2 = st.columns([1, 1])
-
-    with col1:
-        st.write("") # Spacer
-        st.write("") 
-        
-        # النصوص بتنسيق HTML عشان نتحكم في الحجم بالظبط زي الصورة
-        st.markdown('<div class="sub-title">AI-POWERED STARTUP PARTNER</div>', unsafe_allow_html=True)
-        st.markdown('<div class="big-title">SMART<br>CO-FOUNDER</div>', unsafe_allow_html=True)
-        
+    st.write("")
+    
+    col_text, col_img = st.columns([5, 4])
+    with col_text:
+        st.write("")
+        st.markdown('<p style="color:#FFD700 !important; letter-spacing:3px; font-weight:700;">AI-POWERED PARTNER</p>', unsafe_allow_html=True)
+        st.markdown('<div style="font-size: 85px; font-weight: 900; line-height: 0.95;">SMART<br>CO-FOUNDER</div>', unsafe_allow_html=True)
+        st.write("")
         st.markdown("""
-        <div class="desc">
-        حول فكرتك إلى مشروع ناجح باستخدام أحدث تقنيات الذكاء الاصطناعي.
-        احصل على خطط عمل، استراتيجيات تسويق، وقاعدة بيانات موردين، كل ذلك في مكان واحد وبضغطة زر.
-        </div>
-        """, unsafe_allow_html=True)
+        Build your startup with the power of AI. From idea validation to 
+        marketing strategies, get everything you need in one unified dashboard.
+        """)
         
-        # زرار البداية
-        if st.button("🚀 ABDA' REHLETAK | ابدأ رحلتك"):
-            go_to_app()
-            st.rerun()
+        st.write("")
+        c_btn, _ = st.columns([2, 1])
+        with c_btn:
+            if st.button("START JOURNEY 🚀"):
+                go_to_app()
+                st.rerun()
 
-    with col2:
-        # صورة اللابتوب (جبتلك صورة 3D قريبة جداً من اللي في التصميم خلفيتها شفافة)
-        st.image("https://cdni.iconscout.com/illustration/premium/thumb/web-development-2974925-2477356.png", width=600)
+    with col_img:
+        st.image("https://cdni.iconscout.com/illustration/premium/thumb/web-development-2974925-2477356.png", width=650)
 
-# ---------------------------------------------------------
-# 5. محتوى التطبيق (App View) - لما يضغط ابدأ
-# ---------------------------------------------------------
+# =========================================================
+# 5. VIEW: APP
+# =========================================================
 elif st.session_state.page == 'app':
     
-    # نرجع الخلفية سوداء عشان التطبيق يبقى مريح للعين وقت الشغل
-    st.markdown("""
-    <style>
-    .stApp {
-        background: #0E1117; /* Dark Mode for App */
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-    # -----------------------------------------------------
-    # هنا كود التطبيق الأساسي (Chat & Logic)
-    # -----------------------------------------------------
-    
-    # 👇👇 حط مفتاحك هنا 👇👇
-    try:
-        api_key = "AIzaSyD753gzu6nM_k8jXNkUz0bOQApxIojeZOo" # ضع مفتاحك هنا
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-1.5-flash')
-    except:
-        st.warning("⚠️ Please configure API Key.")
-
-    # Sidebar
     with st.sidebar:
-        st.image("https://cdn-icons-png.flaticon.com/512/4712/4712009.png", width=50)
-        st.header("Smart Tools")
-        if st.button("⬅️ Back to Home"):
-            st.session_state.page = 'landing'
+        st.markdown("### CONTROL CENTER")
+        st.caption("ID: SESSION-001")
+        st.write("")
+        st.write("")
+        
+        steps = [
+            (1, "BRAINSTORMING", "Idea Validation"),
+            (2, "BLUEPRINT", "Strategic Plan"),
+            (3, "EXECUTION", "Growth Tools")
+        ]
+        
+        for num, title, desc in steps:
+            active_class = "step-active" if st.session_state.phase == num else ""
+            st.markdown(f"""
+            <div class="step-box {active_class}">
+                <p class="step-title">0{num}. {title}</p>
+                <p class="step-desc">{desc}</p>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        st.write("---")
+        
+        if st.session_state.phase == 1:
+            st.info("💡 Tip: Chat to refine idea, then click Generate.")
+            if st.button("GENERATE PLAN"):
+                st.session_state.phase = 2
+                st.rerun()
+        
+        st.write("")
+        if st.button("EXIT SESSION"):
+            reset_app()
             st.rerun()
 
-    # Chat UI
-    st.title("🦅 Smart Co-Founder Dashboard")
-    
-    if "messages" not in st.session_state:
-        st.session_state.messages = [{"role": "assistant", "content": "Welcome aboard! What idea are we building today?"}]
-
-    for msg in st.session_state.messages:
-        with st.chat_message(msg["role"]):
-            st.write(msg["content"])
-
-    if prompt := st.chat_input("Tell me your idea..."):
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.write(prompt)
+    # Chat Phase
+    if st.session_state.phase == 1:
+        st.markdown("## BRAINSTORMING SESSION")
         
-        # Simple AI Call
-        try:
-            response = model.generate_content(prompt)
-            st.session_state.messages.append({"role": "assistant", "content": response.text})
-            with st.chat_message("assistant"):
-                st.write(response.text)
-        except:
-            st.error("AI connection error.")
+        chat_container = st.container()
+        with chat_container:
+            for msg in st.session_state.messages:
+                is_ai = msg["role"] == "assistant"
+                bg_color = "rgba(255,255,255,0.15)" if is_ai else "rgba(0,0,0,0.3)"
+                label = "AI CONSULTANT" if is_ai else "YOU"
+                label_color = "#FFD700" if is_ai else "#FFFFFF"
+                
+                st.markdown(f"""
+                <div style="margin-bottom: 25px;">
+                    <div class="chat-label" style="color: {label_color} !important;">{label}</div>
+                    <div class="chat-bubble" style="background: {bg_color}; border: 1px solid rgba(255,255,255,0.1);">
+                        {msg['content']}
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+        
+        st.write("<br><br>", unsafe_allow_html=True)
+
+        if prompt := st.chat_input("Type your idea here..."):
+            st.session_state.messages.append({"role": "user", "content": prompt})
+            st.rerun()
+
+        if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
+            with st.spinner("Analyzing..."):
+                try:
+                    full_context = "\n".join([f"{m['role']}: {m['content']}" for m in st.session_state.messages])
+                    response = model.generate_content(f"Act as a professional startup consultant. Be concise and bold. Context: {full_context}")
+                    st.session_state.messages.append({"role": "assistant", "content": response.text})
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Error: {e}")
+
+    # Blueprint Phase
+    elif st.session_state.phase == 2:
+        st.markdown("## STRATEGIC BLUEPRINT")
+        st.success("PLAN GENERATED SUCCESSFULLY")
+        st.markdown("""
+        <div style="background:rgba(0,0,0,0.4); padding:40px; border-radius:15px; border:1px solid rgba(255,255,255,0.2);">
+            <h3 style="color:#FFD700 !important;">EXECUTIVE SUMMARY</h3>
+            <p style="font-size:20px;"><strong>MISSION:</strong> Dominate the local market with premium quality and AI-driven operations.</p>
+            <br>
+            <h3 style="color:#FFD700 !important;">NEXT STEPS</h3>
+            <ul>
+                <li>STEP 01: Secure Initial Funding</li>
+                <li>STEP 02: MVP Development Sprint</li>
+                <li>STEP 03: Soft Launch Campaign</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("GO TO EXECUTION"):
+            st.session_state.phase = 3
+            st.rerun()
+
+    # Execution Phase
+    elif st.session_state.phase == 3:
+        st.markdown("## EXECUTION TOOLS")
+        t1, t2 = st.tabs(["SUPPLIERS", "MARKETING"])
+        with t1:
+            st.write("")
+            st.text_input("SEARCH DATABASE", placeholder="e.g. Packaging, Developers...")
+            st.button("FIND SUPPLIERS")
+        with t2:
+            st.write("")
+            st.button("GENERATE CAMPAIGN")
